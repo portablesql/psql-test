@@ -34,8 +34,8 @@ github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdh
 github.com/ncruces/go-strftime v0.1.9/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/portablesql/psql v0.5.0 h1:pNBxh09nW+Vg94Q1BEn2cGUkogTDZMpsNT/pBo8OTxk=
-github.com/portablesql/psql v0.5.0/go.mod h1:E66N5+asL6D6RL0xbNoBQWGrfuRiVrGBPAQvOkeQV6k=
+github.com/portablesql/psql v0.5.1 h1:qQVZuvAEA0+CPQhW2U+PswwLzrftrHwuW7rL0Qopgi4=
+github.com/portablesql/psql v0.5.1/go.mod h1:E66N5+asL6D6RL0xbNoBQWGrfuRiVrGBPAQvOkeQV6k=
 github.com/portablesql/psql-mysql v0.5.0 h1:8RAT3DCXhYtHgYcgXKODq9NH2ifv9azArB1xN+MVo+A=
 github.com/portablesql/psql-mysql v0.5.0/go.mod h1:a9gYmBKFwhZ6I2A8AW0KBmMEMe27oS5hYdUvxLSQvWk=
 github.com/portablesql/psql-pgsql v0.5.0 h1:OOtAtLBAFf+GhOO1B9Fshxt47GSc90eEq38xw/mj+8s=
