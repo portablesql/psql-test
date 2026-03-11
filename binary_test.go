@@ -116,6 +116,38 @@ func TestBinaryWhereEqual(t *testing.T) {
 	_ = psql.Q(`DROP TABLE IF EXISTS "test_binary"`).Exec(ctx)
 }
 
+type BinaryNullableTable struct {
+	psql.Name `sql:"test_binary_nullable"`
+	ID        int64  `sql:",key=PRIMARY"`
+	Label     string `sql:",type=VARCHAR,size=128"`
+	Data      []byte `sql:",type=BLOB,null=1"`
+}
+
+func TestBinaryNilInsert(t *testing.T) {
+	be := getTestBackend(t)
+	ctx := be.Plug(context.Background())
+	_ = psql.Q(`DROP TABLE IF EXISTS "test_binary_nullable"`).Exec(ctx)
+
+	// Insert with nil []byte — should store as SQL NULL, not cause encoding errors.
+	err := psql.Insert(ctx, &BinaryNullableTable{ID: 1, Label: "nil-data"})
+	require.NoError(t, err)
+
+	obj, err := psql.Get[BinaryNullableTable](ctx, map[string]any{"ID": int64(1)})
+	require.NoError(t, err)
+	assert.Equal(t, "nil-data", obj.Label)
+	assert.Nil(t, obj.Data, "nil []byte should roundtrip as nil")
+
+	// Also insert a row with non-nil data to confirm both work in the same table
+	err = psql.Insert(ctx, &BinaryNullableTable{ID: 2, Label: "has-data", Data: []byte{0xab, 0xcd}})
+	require.NoError(t, err)
+
+	obj2, err := psql.Get[BinaryNullableTable](ctx, map[string]any{"ID": int64(2)})
+	require.NoError(t, err)
+	assert.True(t, bytes.Equal([]byte{0xab, 0xcd}, obj2.Data))
+
+	_ = psql.Q(`DROP TABLE IF EXISTS "test_binary_nullable"`).Exec(ctx)
+}
+
 func TestBinaryMultipleRows(t *testing.T) {
 	be := getTestBackend(t)
 	ctx := be.Plug(context.Background())

@@ -3,7 +3,7 @@ module github.com/portablesql/psql-test
 go 1.24.0
 
 require (
-	github.com/portablesql/psql v0.5.4
+	github.com/portablesql/psql v0.5.5
 	github.com/portablesql/psql-mysql v0.5.0
 	github.com/portablesql/psql-pgsql v0.5.0
 	github.com/portablesql/psql-sqlite v0.5.0
