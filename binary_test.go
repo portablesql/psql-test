@@ -79,8 +79,8 @@ func TestBinaryLargePayload(t *testing.T) {
 	ctx := be.Plug(context.Background())
 	_ = psql.Q(`DROP TABLE IF EXISTS "test_binary"`).Exec(ctx)
 
-	// 64KB of binary data
-	data := make([]byte, 64*1024)
+	// 32KB of binary data (must fit in MySQL BLOB which is 65535 bytes max)
+	data := make([]byte, 32*1024)
 	for i := range data {
 		data[i] = byte(i % 256)
 	}
@@ -120,7 +120,7 @@ type BinaryNullableTable struct {
 	psql.Name `sql:"test_binary_nullable"`
 	ID        int64  `sql:",key=PRIMARY"`
 	Label     string `sql:",type=VARCHAR,size=128"`
-	Data      []byte `sql:",type=BLOB,null=1"`
+	Data      []byte `sql:",import=[]uint8,null=1"`
 }
 
 func TestBinaryNilInsert(t *testing.T) {
