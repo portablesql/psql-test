@@ -465,3 +465,54 @@ func TestSetRawIntegration(t *testing.T) {
 
 	_ = psql.Q(`DROP TABLE IF EXISTS "test_counter"`).Exec(ctx)
 }
+
+// === format=json integration tests ===
+
+type JSONRow struct {
+	psql.Name `sql:"test_json_format"`
+	ID        int64          `sql:",key=PRIMARY"`
+	Data      map[string]any `sql:"Data,type=TEXT,format=json"`
+	Tags      []string       `sql:"Tags,type=TEXT,format=json"`
+}
+
+func TestJSONFormatIntegration(t *testing.T) {
+	be := getTestBackend(t)
+	ctx := be.Plug(context.Background())
+	_ = psql.Q(`DROP TABLE IF EXISTS "test_json_format"`).Exec(ctx)
+
+	// Insert with JSON fields
+	original := &JSONRow{
+		ID:   1,
+		Data: map[string]any{"name": "alice", "score": float64(42)},
+		Tags: []string{"go", "sql", "json"},
+	}
+	require.NoError(t, psql.Insert(ctx, original))
+
+	// Fetch back and verify roundtrip
+	fetched, err := psql.Get[JSONRow](ctx, map[string]any{"ID": int64(1)})
+	require.NoError(t, err)
+
+	assert.Equal(t, "alice", fetched.Data["name"])
+	assert.Equal(t, float64(42), fetched.Data["score"])
+	assert.Equal(t, []string{"go", "sql", "json"}, fetched.Tags)
+
+	// Update JSON fields
+	fetched.Data["name"] = "bob"
+	fetched.Tags = []string{"updated"}
+	require.NoError(t, psql.Update(ctx, fetched))
+
+	// Fetch again and verify update
+	fetched2, err := psql.Get[JSONRow](ctx, map[string]any{"ID": int64(1)})
+	require.NoError(t, err)
+	assert.Equal(t, "bob", fetched2.Data["name"])
+	assert.Equal(t, []string{"updated"}, fetched2.Tags)
+
+	// Insert with nil JSON fields
+	require.NoError(t, psql.Insert(ctx, &JSONRow{ID: 2}))
+	fetched3, err := psql.Get[JSONRow](ctx, map[string]any{"ID": int64(2)})
+	require.NoError(t, err)
+	assert.Nil(t, fetched3.Data)
+	assert.Nil(t, fetched3.Tags)
+
+	_ = psql.Q(`DROP TABLE IF EXISTS "test_json_format"`).Exec(ctx)
+}
