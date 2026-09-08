@@ -95,7 +95,9 @@ func TestVecDistanceEscapeValue(t *testing.T) {
 }
 
 func TestVecOrderBy(t *testing.T) {
-	ctx := context.Background()
+	// Vector distance operators are only rendered on PostgreSQL (pgvector);
+	// other engines return a render error.
+	ctx := psql.NewBackend(psql.EnginePostgreSQL, nil).Plug(context.Background())
 	v := psql.Vector{1, 2, 3}
 	query := psql.B().Select().From("items").
 		OrderBy(psql.VecOrderBy(psql.F("Embedding"), v, psql.VectorL2))
@@ -106,7 +108,9 @@ func TestVecOrderBy(t *testing.T) {
 }
 
 func TestVecDistanceInBuilder(t *testing.T) {
-	ctx := context.Background()
+	// Vector distance operators are only rendered on PostgreSQL (pgvector);
+	// other engines return a render error.
+	ctx := psql.NewBackend(psql.EnginePostgreSQL, nil).Plug(context.Background())
 
 	v := psql.Vector{0.1, 0.2, 0.3}
 	query := psql.B().Select().From("items").
@@ -140,7 +144,9 @@ func TestVecEqualInBuilder(t *testing.T) {
 }
 
 func TestVecDistanceWithThreshold(t *testing.T) {
-	ctx := context.Background()
+	// Vector distance operators are only rendered on PostgreSQL (pgvector);
+	// other engines return a render error.
+	ctx := psql.NewBackend(psql.EnginePostgreSQL, nil).Plug(context.Background())
 	v := psql.Vector{1, 2, 3}
 
 	// Use distance in WHERE with a threshold

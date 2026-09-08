@@ -278,16 +278,13 @@ func TestEscapeTx(t *testing.T) {
 	assert.False(t, ok)
 	assert.NotNil(t, escaped)
 
-	// EscapeTx with a raw sql.Tx context
+	// EscapeTx with a TxProxy context (as attached by ContextTx / Tx)
 	tx, err := psql.BeginTx(ctx, nil)
 	require.NoError(t, err)
-	// ContextTx wraps with TxProxy, but EscapeTx looks for *sql.Tx specifically.
-	// Since Tx() uses TxProxy, EscapeTx won't find a *sql.Tx to escape from.
 	txCtx := psql.ContextTx(ctx, tx)
 	escaped, ok = psql.EscapeTx(txCtx)
-	// TxProxy is not *sql.Tx, so it should return the parent context
-	assert.NotNil(t, escaped)
-	_ = ok // behavior depends on whether TxProxy matches *sql.Tx check
+	assert.True(t, ok, "EscapeTx must find the TxProxy")
+	assert.Equal(t, ctx, escaped, "EscapeTx returns the context active before the transaction")
 	_ = tx.Rollback()
 }
 
