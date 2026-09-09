@@ -30,5 +30,8 @@ func getTestBackend(t *testing.T) *psql.Backend {
 		}
 		t.Skipf("database not available: %s", err)
 	}
+	// Every test opens its own pool; release it so a long run does not exhaust
+	// the server's connection limit.
+	t.Cleanup(func() { _ = be.Close() })
 	return be
 }
