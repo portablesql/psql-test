@@ -167,6 +167,6 @@ jobs:
           PGDATABASE: psql_test
       - name: Integration tests
         working-directory: psql-test
-        run: go test -race -count=1 ./...
+        run: go test -race -count=1 -v -timeout 20m ./...
         env:
           PSQL_TEST_DSN: ${{ matrix.dsn }}

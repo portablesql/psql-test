@@ -132,11 +132,14 @@ func TestCoreQExecInsideTx(t *testing.T) {
 	defer func() { _ = psql.Q(`DROP TABLE IF EXISTS "core_tx_item"`).Exec(ctx) }()
 	require.NoError(t, psql.Insert(ctx, &CoreTxItem{ID: 1, Label: "seed"}))
 
+	// raw SQL must use the engine's placeholders ($1 on PostgreSQL)
+	insertSQL := `INSERT INTO "core_tx_item" ("ID","Label") VALUES (` + be.Engine().Placeholders(2, 1) + `)`
+
 	// Q().Exec must run on the transaction: rolled back here
 	done := make(chan error, 1)
 	go func() {
 		done <- psql.Tx(ctx, func(txCtx context.Context) error {
-			if err := psql.Q(`INSERT INTO "core_tx_item" ("ID","Label") VALUES (?,?)`, 2, "in tx").Exec(txCtx); err != nil {
+			if err := psql.Q(insertSQL, 2, "in tx").Exec(txCtx); err != nil {
 				return err
 			}
 			return errors.New("abort")
@@ -154,7 +157,7 @@ func TestCoreQExecInsideTx(t *testing.T) {
 
 	// committed
 	err = psql.Tx(ctx, func(txCtx context.Context) error {
-		return psql.Q(`INSERT INTO "core_tx_item" ("ID","Label") VALUES (?,?)`, 3, "in tx").Exec(txCtx)
+		return psql.Q(insertSQL, 3, "in tx").Exec(txCtx)
 	})
 	require.NoError(t, err)
 	cnt, err = psql.Count[CoreTxItem](ctx, nil)
