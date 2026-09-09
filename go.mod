@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/portablesql/psql v0.5.9
 	github.com/portablesql/psql-mysql v0.5.1
-	github.com/portablesql/psql-pgsql v0.5.1
+	github.com/portablesql/psql-pgsql v0.5.2
 	github.com/portablesql/psql-sqlite v0.5.1
 	github.com/stretchr/testify v1.11.1
 )

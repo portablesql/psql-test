@@ -38,8 +38,8 @@ github.com/portablesql/psql v0.5.9 h1:iKaSSKl87NaZwcLwCeIipFaWA4HBzSbyaSUVPNomXx
 github.com/portablesql/psql v0.5.9/go.mod h1:E66N5+asL6D6RL0xbNoBQWGrfuRiVrGBPAQvOkeQV6k=
 github.com/portablesql/psql-mysql v0.5.1 h1:yR1ZEYY2PqROK52DeWykxKR5gae9iorW7XbZ+E7xuvo=
 github.com/portablesql/psql-mysql v0.5.1/go.mod h1:mul6dUCFAJBZExIntzk+cMvVR7++5MdGapnhBqBeyKk=
-github.com/portablesql/psql-pgsql v0.5.1 h1:i16RG4mIWqhlVeCYVJuoKMv2nRL7QfrQh6XvdxSpjmU=
-github.com/portablesql/psql-pgsql v0.5.1/go.mod h1:D2e9aRfVSII5WreIvVl02z+CLPfv64pCBGIQwKOaqn4=
+github.com/portablesql/psql-pgsql v0.5.2 h1:d6zKavBbJhy6BNJWkp5Mx7TBOzMT/InyvW6mwMhXBRw=
+github.com/portablesql/psql-pgsql v0.5.2/go.mod h1:D2e9aRfVSII5WreIvVl02z+CLPfv64pCBGIQwKOaqn4=
 github.com/portablesql/psql-sqlite v0.5.1 h1:aXtb+3WvKicC8LcAsXcY298DBMGXe1EXTXgvkEiN7/A=
 github.com/portablesql/psql-sqlite v0.5.1/go.mod h1:CfwoF27k4qv5cHgHx9iLUwM2H+gEJ0EuHhOmpxuV+0w=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
