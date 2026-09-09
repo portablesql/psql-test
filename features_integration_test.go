@@ -66,6 +66,7 @@ func TestCILikeIntegration(t *testing.T) {
 	})
 	require.NoError(t, err)
 	// Result count depends on engine (PG: 0, MySQL: 2, SQLite: 2)
+	assert.LessOrEqual(t, len(results), 2)
 	// Just verify no error
 
 	// NOT case-insensitive Like

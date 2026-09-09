@@ -23,6 +23,11 @@ func getTestBackend(t *testing.T) *psql.Backend {
 	}
 	be, err := psql.New(dsn)
 	if err != nil {
+		if os.Getenv("PSQL_TEST_DSN") != "" {
+			// An explicitly requested database must be reachable, otherwise CI
+			// would silently pass with every test skipped.
+			t.Fatalf("PSQL_TEST_DSN is set but the database is not available: %s", err)
+		}
 		t.Skipf("database not available: %s", err)
 	}
 	return be

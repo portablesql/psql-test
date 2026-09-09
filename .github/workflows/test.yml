@@ -5,24 +5,92 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
+  schedule:
+    # Weekly run so drift between psql, the drivers and this suite is caught
+    # even when nothing is pushed here.
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  sqlite:
-    name: SQLite
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: psql-test
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql
+          ref: master
+          path: psql
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql-mysql
+          ref: master
+          path: psql-mysql
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql-pgsql
+          ref: master
+          path: psql-pgsql
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql-sqlite
+          ref: master
+          path: psql-sqlite
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
-      - run: go test -v -count=1 ./...
+          go-version: stable
+          check-latest: true
+          cache-dependency-path: |
+            psql/go.sum
+            psql-test/go.sum
+            psql-mysql/go.sum
+            psql-pgsql/go.sum
+            psql-sqlite/go.sum
+      - name: Setup workspace
+        run: go work init ./psql ./psql-test ./psql-mysql ./psql-pgsql ./psql-sqlite
+      - name: gofmt
+        working-directory: psql-test
+        run: |
+          out=$(gofmt -l .)
+          if [ -n "$out" ]; then
+            echo "files not formatted:"; echo "$out"; exit 1
+          fi
+      - name: go vet
+        working-directory: psql-test
+        run: go vet ./...
 
-  postgres:
-    name: PostgreSQL
+  test:
+    # This module's go.mod pins released psql/driver versions, but the tests
+    # track psql master; a go.work with sibling master checkouts overrides
+    # the pinned versions. psql-pgsql and psql-sqlite require go >= 1.25.
+    name: Integration (${{ matrix.backend }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [sqlite, mysql, postgres]
+        include:
+          - backend: sqlite
+            dsn: ""
+          - backend: mysql
+            dsn: "root:test@tcp(127.0.0.1:3306)/psql_test"
+          - backend: postgres
+            dsn: "postgres://test:test@localhost:5432/psql_test?sslmode=disable"
     services:
+      # Both services are declared for every matrix entry; GitHub does not
+      # allow conditional services. They are cheap and health-checked.
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -30,23 +98,10 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U test -d psql_test"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-      - run: go test -v -count=1 ./...
-        env:
-          PSQL_TEST_DSN: "postgres://test:test@localhost:5432/psql_test?sslmode=disable"
-
-  mysql:
-    name: MySQL
-    runs-on: ubuntu-latest
-    services:
+          --health-retries 10
       mysql:
         image: mysql:8
         env:
@@ -55,15 +110,63 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1"
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -ptest"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: psql-test
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql
+          ref: master
+          path: psql
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql-mysql
+          ref: master
+          path: psql-mysql
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql-pgsql
+          ref: master
+          path: psql-pgsql
+      - uses: actions/checkout@v4
+        with:
+          repository: portablesql/psql-sqlite
+          ref: master
+          path: psql-sqlite
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
-      - run: go test -v -count=1 ./...
+          go-version: stable
+          check-latest: true
+          cache-dependency-path: |
+            psql/go.sum
+            psql-test/go.sum
+            psql-mysql/go.sum
+            psql-pgsql/go.sum
+            psql-sqlite/go.sum
+      - name: Setup workspace
+        run: go work init ./psql ./psql-test ./psql-mysql ./psql-pgsql ./psql-sqlite
+      - name: Build psql-test
+        working-directory: psql-test
+        run: go build ./...
+      - name: Enable pgvector
+        # The tests run CREATE EXTENSION themselves and skip vector tests when
+        # it fails; doing it here as well makes a missing extension a hard
+        # failure instead of a silent skip.
+        if: matrix.backend == 'postgres'
+        run: psql -v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector'
         env:
-          PSQL_TEST_DSN: "root:test@tcp(127.0.0.1:3306)/psql_test"
+          PGHOST: localhost
+          PGPORT: "5432"
+          PGUSER: test
+          PGPASSWORD: test
+          PGDATABASE: psql_test
+      - name: Integration tests
+        working-directory: psql-test
+        run: go test -race -count=1 ./...
+        env:
+          PSQL_TEST_DSN: ${{ matrix.dsn }}

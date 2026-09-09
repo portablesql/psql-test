@@ -88,14 +88,17 @@ func TestLazyFixesContextBatch(t *testing.T) {
 	other := psql.LazyCtx[LFItem](ctx, "ID", "3") // private batch, not shared
 
 	// Resolving with a nil context uses the context given to LazyCtx.
+	//lint:ignore SA1012 exercising nil-context handling
 	obj, err := f1.Resolve(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "one", obj.Label)
 
 	// Peers were resolved by the batch and are immediately available.
+	//lint:ignore SA1012 exercising nil-context handling
 	obj, err = f2.Resolve(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "two", obj.Label)
+	//lint:ignore SA1012 exercising nil-context handling
 	obj, err = f3.Resolve(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "three", obj.Label)
@@ -108,6 +111,7 @@ func TestLazyFixesContextBatch(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(data), `"two"`)
 
+	//lint:ignore SA1012 exercising nil-context handling
 	obj, err = other.Resolve(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "three", obj.Label)
@@ -136,12 +140,15 @@ func TestLazyFixesCrossBackendIsolation(t *testing.T) {
 	fA2 := psql.LazyCtx[LFItem](beA.Plug(batch), "ID", "2")
 	assert.NotSame(t, fA, fB)
 
+	//lint:ignore SA1012 exercising nil-context handling
 	obj, err := fA.Resolve(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "A-one", obj.Label)
+	//lint:ignore SA1012 exercising nil-context handling
 	obj, err = fA2.Resolve(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "A-two", obj.Label)
+	//lint:ignore SA1012 exercising nil-context handling
 	obj, err = fB.Resolve(nil)
 	require.NoError(t, err)
 	assert.Equal(t, "B-one", obj.Label)
