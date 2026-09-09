@@ -5,10 +5,10 @@ go 1.25.0
 require (
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/jackc/pgx/v5 v5.11.0
-	github.com/portablesql/psql v0.5.9
-	github.com/portablesql/psql-mysql v0.5.1
-	github.com/portablesql/psql-pgsql v0.5.2
-	github.com/portablesql/psql-sqlite v0.5.1
+	github.com/portablesql/psql v0.5.10
+	github.com/portablesql/psql-mysql v0.5.2
+	github.com/portablesql/psql-pgsql v0.5.3
+	github.com/portablesql/psql-sqlite v0.5.2
 	github.com/stretchr/testify v1.11.1
 )
 
